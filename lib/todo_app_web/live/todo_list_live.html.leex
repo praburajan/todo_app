@@ -1,0 +1,64 @@
+<section class="todoapp">
+  <div>
+    <header class="header">
+    <h1>todos</h1>
+      <form phx-submit="add-todo">
+        <input name="text" class="new-todo" placeholder="What needs to be done?" autofocus>
+      </form>
+    </header>
+    <section class="main">
+      <input id="toggle-all" class="toggle-all" type="checkbox"
+                                  phx-click="toggle-all"
+                                  phx-value-checked="<%= all_todos_completed?(@todos) |> to_string()%>"
+                                  <%=if all_todos_completed?(@todos), do: "checked"%>>
+      <label for="toggle-all"></label>
+      <ul class="todo-list">
+        <%= for todo <- @todos, todo_visible?(todo, @filter) do %>
+          <li class="<%= todo_classes(todo)%>" phx-hook="Todo">
+            <div class="view">
+              <input type="checkbox" class="toggle" phx-click="toggle"
+                phx-value-todo-id="<%= todo.id %>"
+                <%= if todo.state == "completed", do: "checked" %>>
+              <label><%= todo.text %></label>
+              <button class="destroy" phx-click="delete-todo" phx-value-todo-id="<%= todo.id %>"></button>
+            </div>
+            <form phx-change="change" phx-submit="change">
+              <input
+                class="edit"
+                name="title"
+                phx-value-todo-id="<%= todo.id %>"
+                phx-blur="stop-editing"
+                value="<%= todo.text %>"
+              >
+            </form>
+          </li>
+        <% end %>
+      </ul>
+    </section>
+    <%= if Enum.any?(@todos) do %>
+      <footer class="footer">
+        <span class="todo-count"><%= todos_count_text(@todos) %></span>
+        <ul class="filters">
+          <li>
+            <%= live_patch "All",
+              to: Routes.live_path(@socket, TodoAppWeb.TodoListLive, %{filter: "all"}),
+              class: selected_class(@filter, "all")
+            %>
+          </li>
+          <li>
+            <%= live_patch "Active",
+              to: Routes.live_path(@socket, TodoAppWeb.TodoListLive, %{filter: "active"}),
+              class: selected_class(@filter, "active")
+            %>
+          </li>
+          <li>
+          <%= live_patch "Completed",
+            to: Routes.live_path(@socket, TodoAppWeb.TodoListLive, %{filter: "completed"}),
+            class: selected_class(@filter, "completed")
+          %>
+        </li>
+        </ul>
+      </footer>
+    <% end %>
+  </div>
+</section>
